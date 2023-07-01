@@ -1,5 +1,6 @@
 package com.pertamina.backend.service;
 
+import com.pertamina.backend.helper.DataStatus;
 import com.pertamina.backend.model.dto.BaseDataDto;
 import com.pertamina.backend.model.dto.BaseDataDtoRes;
 import com.pertamina.backend.model.dto.DashboardDto;
@@ -17,4 +18,5 @@ public interface DataService {
     List<BaseData> uploadData(MultipartFile file);
     BaseData saveDraft(BaseDataDto dto);
     BaseData submit(BaseDataDto dto);
+    BaseData verify(BaseDataDto dto, DataStatus status);
 }

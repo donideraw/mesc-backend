@@ -1,5 +1,6 @@
 package com.pertamina.backend.controller;
 
+import com.pertamina.backend.helper.DataStatus;
 import com.pertamina.backend.model.dto.BaseDataDto;
 import com.pertamina.backend.model.dto.GlobalResponseEntity;
 import com.pertamina.backend.model.dto.PageableRequest;
@@ -40,6 +41,16 @@ public class BaseDataController {
     @PostMapping("/submit")
     public ResponseEntity<GlobalResponseEntity> submit(@RequestBody BaseDataDto dto) {
         return GlobalResponseEntity.ok(dataService.submit(dto));
+    }
+
+    @PostMapping("/request")
+    public ResponseEntity<GlobalResponseEntity> request(@RequestBody BaseDataDto dto) {
+        return GlobalResponseEntity.ok(dataService.verify(dto, DataStatus.REQUESTED));
+    }
+
+    @PostMapping("/approve")
+    public ResponseEntity<GlobalResponseEntity> approve(@RequestBody BaseDataDto dto) {
+        return GlobalResponseEntity.ok(dataService.verify(dto, DataStatus.SUBMITTED));
     }
 
     @PostMapping("/download")

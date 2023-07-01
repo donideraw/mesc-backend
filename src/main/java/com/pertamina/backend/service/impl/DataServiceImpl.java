@@ -175,4 +175,22 @@ public class DataServiceImpl implements DataService {
 
         return baseDataRepository.save(data);
     }
+
+    @Override
+    public BaseData verify(BaseDataDto dto, DataStatus status) {
+        BaseData data = baseDataRepository.findByDataId(dto.getDataId());
+
+        if (data == null) {
+            throw new CustomException("Data not found!", HttpStatus.BAD_REQUEST);
+        }
+
+        AppAuth auth = SecurityUtil.getAuth();
+
+        data.setComment(dto.getComment());
+        data.setStatus(status);
+        data.setCheckedBy(auth.getUsername());
+        data.setCheckedAt(LocalDateTime.now());
+
+        return baseDataRepository.save(data);
+    }
 }
