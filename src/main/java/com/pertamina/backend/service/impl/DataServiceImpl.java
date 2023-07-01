@@ -55,6 +55,26 @@ public class DataServiceImpl implements DataService {
     }
 
     @Override
+    public BaseDataDtoRes getDownloadedData(PageableRequest request) {
+
+        BaseDataDtoRes res = new BaseDataDtoRes();
+        Page<BaseData> baseDataPage;
+
+        Sort sort = Sort.by(Sort.Direction.ASC, "uploadedAt");
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
+
+        Specification<BaseData> specification = (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get("status"), DataStatus.SUBMITTED);
+        baseDataPage = baseDataRepository.findAll(specification, pageable);
+
+        res.setData(baseDataPage.getContent());
+        res.setTotalPages(baseDataPage.getTotalPages());
+        res.setTotalElements(baseDataPage.getTotalElements());
+
+        return res;
+    }
+
+    @Override
     public BaseDataDtoRes getAllBaseDataPaged(PageableRequest request) {
         AppAuth auth = SecurityUtil.getAuth();
         BaseDataDtoRes res = new BaseDataDtoRes();

@@ -11,6 +11,7 @@ import java.util.List;
 
 public interface DataService {
     DashboardDto getDataDashboard();
+    BaseDataDtoRes getDownloadedData(PageableRequest request);
     List<BaseData> getAllBaseDataCompleted();
     BaseDataDtoRes getAllBaseDataPaged(PageableRequest request);
     List<BaseData> uploadData(MultipartFile file);

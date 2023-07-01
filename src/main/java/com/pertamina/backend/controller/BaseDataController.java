@@ -41,4 +41,9 @@ public class BaseDataController {
     public ResponseEntity<GlobalResponseEntity> submit(@RequestBody BaseDataDto dto) {
         return GlobalResponseEntity.ok(dataService.submit(dto));
     }
+
+    @PostMapping("/download")
+    public ResponseEntity<GlobalResponseEntity> getDownloadedData(@RequestBody PageableRequest request) {
+        return GlobalResponseEntity.ok(dataService.getDownloadedData(request));
+    }
 }
