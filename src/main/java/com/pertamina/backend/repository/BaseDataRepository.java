@@ -13,6 +13,7 @@ public interface BaseDataRepository extends JpaRepository<BaseData, Long> {
 
     List<BaseData> findAllByAssignee(String assignee);
     List<BaseData> findAllByStatus(DataStatus dataStatus);
+    List<BaseData> findAllByStatusAndAssignee(DataStatus dataStatus, String assignee);
 
     BaseData findByDataId(String dataId);
 

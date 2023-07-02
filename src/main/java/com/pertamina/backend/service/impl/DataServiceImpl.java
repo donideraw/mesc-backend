@@ -40,11 +40,15 @@ public class DataServiceImpl implements DataService {
         List<BaseData> totalData = baseDataRepository.findAll();
         List<BaseData> totalAssignedData = baseDataRepository.findAllByAssignee(auth.getUsername());
         List<BaseData> totalCompletedData = baseDataRepository.findAllByStatus(DataStatus.SUBMITTED);
+        List<BaseData> totalRequestedData = baseDataRepository.findAllByStatusAndAssignee(DataStatus.REQUESTED, auth.getUsername());
+        List<BaseData> totalTodoData = baseDataRepository.findAllByStatusAndAssignee(DataStatus.ASSIGNED, auth.getUsername());
 
         DashboardDto dto = new DashboardDto();
         dto.setTotalTask(totalData.size());
         dto.setTotalAssigned(totalAssignedData.size());
         dto.setTotalCompleted(totalCompletedData.size());
+        dto.setTodo(totalTodoData.size() > 5 ? totalTodoData.subList(0, 5) : totalTodoData);
+        dto.setRequested(totalRequestedData.size() > 5 ? totalRequestedData.subList(0, 5) : totalRequestedData);
 
         return dto;
     }
