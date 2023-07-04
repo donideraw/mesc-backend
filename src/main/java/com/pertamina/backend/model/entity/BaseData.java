@@ -51,4 +51,6 @@ public class BaseData {
     @Column(columnDefinition = "jsonb")
     private JsonNode jsonData;
 
+    private String typeId;
+
 }

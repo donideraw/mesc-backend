@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface BaseDataRepository extends JpaRepository<BaseData, Long> {
+public interface BaseDataRepository extends JpaRepository<BaseData, String> {
 
     List<BaseData> findAllByAssignee(String assignee);
     List<BaseData> findAllByStatus(DataStatus dataStatus);
