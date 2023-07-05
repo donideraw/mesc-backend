@@ -45,7 +45,8 @@ public class AppSecurity extends WebSecurityConfigurerAdapter {
                 "/webjars/**"};
         // define endpoint that should be secured or not.
         http.cors().configurationSource(corsConfigurationSource()).and().csrf().disable().authorizeRequests()
-                .antMatchers("/auth/login").permitAll()
+                .antMatchers("/auth/**").permitAll()
+                .antMatchers("/sample").permitAll()
                 .antMatchers(swaggerResources).permitAll();
 
         http.authorizeRequests().anyRequest().fullyAuthenticated()

@@ -90,7 +90,7 @@ public class ExcelUtility {
   }
 
   private static String getManufacturer(String input) {
-    String pattern = "MANUFACTURE\\\\s*:\\\\s*([^\\\\r\\\\n]+)";
+    String pattern = "MANUFACTURE\\s*:\\s*(\\w+)";
 
     Pattern regex = Pattern.compile(pattern);
     Matcher matcher = regex.matcher(input);
