@@ -38,14 +38,13 @@ public class DataServiceImpl implements DataService {
         AppAuth auth = SecurityUtil.getAuth();
 
         List<BaseData> totalData = baseDataRepository.findAll();
-        List<BaseData> totalAssignedData = baseDataRepository.findAllByAssignee(auth.getUsername());
         List<BaseData> totalCompletedData = baseDataRepository.findAllByStatus(DataStatus.SUBMITTED);
         List<BaseData> totalRequestedData = baseDataRepository.findAllByStatusAndAssignee(DataStatus.REQUESTED, auth.getUsername());
         List<BaseData> totalTodoData = baseDataRepository.findAllByStatusAndAssignee(DataStatus.ASSIGNED, auth.getUsername());
 
         DashboardDto dto = new DashboardDto();
         dto.setTotalTask(totalData.size());
-        dto.setTotalAssigned(totalAssignedData.size());
+        dto.setTotalAssigned(totalTodoData.size());
         dto.setTotalCompleted(totalCompletedData.size());
         dto.setTodo(totalTodoData.size() > 5 ? totalTodoData.subList(0, 5) : totalTodoData);
         dto.setRequested(totalRequestedData.size() > 5 ? totalRequestedData.subList(0, 5) : totalRequestedData);
@@ -89,14 +88,28 @@ public class DataServiceImpl implements DataService {
 
         if (AppUserType.STAFF.equals(auth.getUserType())) {
             Specification<BaseData> specification = (root, query, criteriaBuilder) ->
-                    criteriaBuilder.and(
-                            criteriaBuilder.equal(root.get("assignee"), auth.getUsername()),
-                            criteriaBuilder.or(
-                            criteriaBuilder.like(criteriaBuilder.upper(root.get("dataId")), "%" + request.getSearch().toUpperCase() + "%"),
-                            criteriaBuilder.like(criteriaBuilder.upper(root.get("issuer")), "%" + request.getSearch().toUpperCase() + "%"),
-                            criteriaBuilder.like(criteriaBuilder.upper(root.get("description")), "%" + request.getSearch().toUpperCase() + "%")
-                    )
-                    );
+                    request.getStatus() != null ?
+                            criteriaBuilder.and(
+                                    criteriaBuilder.equal(root.get("status"), request.getStatus()),
+                                    criteriaBuilder.and(
+                                            criteriaBuilder.equal(root.get("assignee"), auth.getUsername()),
+                                            criteriaBuilder.or(
+                                                    criteriaBuilder.like(criteriaBuilder.upper(root.get("dataId")), "%" + request.getSearch().toUpperCase() + "%"),
+                                                    criteriaBuilder.like(criteriaBuilder.upper(root.get("issuer")), "%" + request.getSearch().toUpperCase() + "%"),
+                                                    criteriaBuilder.like(criteriaBuilder.upper(root.get("description")), "%" + request.getSearch().toUpperCase() + "%")
+                                            )
+                                    ))
+                            :
+                            criteriaBuilder.and(
+                                    criteriaBuilder.equal(root.get("assignee"), auth.getUsername()),
+                                    criteriaBuilder.or(
+                                            criteriaBuilder.like(criteriaBuilder.upper(root.get("dataId")), "%" + request.getSearch().toUpperCase() + "%"),
+                                            criteriaBuilder.like(criteriaBuilder.upper(root.get("issuer")), "%" + request.getSearch().toUpperCase() + "%"),
+                                            criteriaBuilder.like(criteriaBuilder.upper(root.get("description")), "%" + request.getSearch().toUpperCase() + "%")
+                                    )
+                            )
+
+            ;
             baseDataPage = baseDataRepository.findAll(specification, pageable);
         } else if (AppUserType.VERIFICATOR.equals(auth.getUserType())) {
             Specification<BaseData> specification = (root, query, criteriaBuilder) ->
@@ -111,11 +124,21 @@ public class DataServiceImpl implements DataService {
             baseDataPage = baseDataRepository.findAll(specification, pageable);
         } else {
             Specification<BaseData> specification = (root, query, criteriaBuilder) ->
-                    criteriaBuilder.or(
-                            criteriaBuilder.like(criteriaBuilder.upper(root.get("dataId")), "%" + request.getSearch().toUpperCase() + "%"),
-                            criteriaBuilder.like(criteriaBuilder.upper(root.get("issuer")), "%" + request.getSearch().toUpperCase() + "%"),
-                            criteriaBuilder.like(criteriaBuilder.upper(root.get("description")), "%" + request.getSearch().toUpperCase() + "%")
-                    );
+                    request.getStatus() != null ?
+                            criteriaBuilder.and(
+                                    criteriaBuilder.equal(root.get("status"), request.getStatus()),
+                                    criteriaBuilder.or(
+                                            criteriaBuilder.like(criteriaBuilder.upper(root.get("dataId")), "%" + request.getSearch().toUpperCase() + "%"),
+                                            criteriaBuilder.like(criteriaBuilder.upper(root.get("issuer")), "%" + request.getSearch().toUpperCase() + "%"),
+                                            criteriaBuilder.like(criteriaBuilder.upper(root.get("description")), "%" + request.getSearch().toUpperCase() + "%")
+                                    ))
+                            :
+                            criteriaBuilder.or(
+                                    criteriaBuilder.like(criteriaBuilder.upper(root.get("dataId")), "%" + request.getSearch().toUpperCase() + "%"),
+                                    criteriaBuilder.like(criteriaBuilder.upper(root.get("issuer")), "%" + request.getSearch().toUpperCase() + "%"),
+                                    criteriaBuilder.like(criteriaBuilder.upper(root.get("description")), "%" + request.getSearch().toUpperCase() + "%")
+                            );
+
             baseDataPage = baseDataRepository.findAll(specification, pageable);
         }
 
