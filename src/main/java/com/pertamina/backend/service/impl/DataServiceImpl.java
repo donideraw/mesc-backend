@@ -6,6 +6,7 @@ import com.pertamina.backend.helper.DataStatus;
 import com.pertamina.backend.model.dto.*;
 import com.pertamina.backend.model.entity.BaseData;
 import com.pertamina.backend.repository.BaseDataRepository;
+import com.pertamina.backend.service.DataLogService;
 import com.pertamina.backend.service.DataService;
 import com.pertamina.backend.utils.ExcelUtility;
 import com.pertamina.backend.utils.SecurityUtil;
@@ -27,9 +28,11 @@ import java.util.List;
 public class DataServiceImpl implements DataService {
 
     private final BaseDataRepository baseDataRepository;
+    private final DataLogService dataLogService;
 
-    public DataServiceImpl(BaseDataRepository baseDataRepository) {
+    public DataServiceImpl(BaseDataRepository baseDataRepository, DataLogService dataLogService) {
         this.baseDataRepository = baseDataRepository;
+        this.dataLogService = dataLogService;
     }
 
     @Override
@@ -200,6 +203,8 @@ public class DataServiceImpl implements DataService {
         data.setSubmittedBy(auth.getUsername());
         data.setSubmittedAt(LocalDateTime.now());
 
+        sendToLog(dto.getDataId(), DataStatus.SUBMITTED);
+
         return baseDataRepository.save(data);
     }
 
@@ -218,6 +223,12 @@ public class DataServiceImpl implements DataService {
         data.setCheckedBy(auth.getUsername());
         data.setCheckedAt(LocalDateTime.now());
 
+        sendToLog(dto.getDataId(), status);
+
         return baseDataRepository.save(data);
+    }
+
+    private void sendToLog(String dataId, DataStatus status) {
+        dataLogService.save(dataId, status);
     }
 }

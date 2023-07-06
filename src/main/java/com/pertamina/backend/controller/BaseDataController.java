@@ -4,6 +4,7 @@ import com.pertamina.backend.helper.DataStatus;
 import com.pertamina.backend.model.dto.BaseDataDto;
 import com.pertamina.backend.model.dto.GlobalResponseEntity;
 import com.pertamina.backend.model.dto.PageableRequest;
+import com.pertamina.backend.service.DataLogService;
 import com.pertamina.backend.service.DataService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,9 +14,11 @@ import org.springframework.web.bind.annotation.*;
 public class BaseDataController {
 
     private final DataService dataService;
+    private final DataLogService dataLogService;
 
-    public BaseDataController(DataService dataService) {
+    public BaseDataController(DataService dataService, DataLogService dataLogService) {
         this.dataService = dataService;
+        this.dataLogService = dataLogService;
     }
 
     @GetMapping
@@ -56,5 +59,10 @@ public class BaseDataController {
     @PostMapping("/download")
     public ResponseEntity<GlobalResponseEntity> getDownloadedData(@RequestBody PageableRequest request) {
         return GlobalResponseEntity.ok(dataService.getDownloadedData(request));
+    }
+
+    @PostMapping("/log")
+    public ResponseEntity<GlobalResponseEntity> getAllBaseDataLogPaged(@RequestBody PageableRequest request) {
+        return GlobalResponseEntity.ok(dataLogService.getPagedData(request));
     }
 }
