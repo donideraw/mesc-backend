@@ -81,14 +81,15 @@ public class ExcelUtility {
       var data = sheet.getRow(i);
       if (data == null) continue;
 
+      String type = getString(data.getCell(1));
       String typeName = getString(data.getCell(4)).replace(' ', '-');
       String subTypeName = getString(data.getCell(7)).replace(' ', '-');
       String attributeName = getString(data.getCell(18));
 
-      String typeId = typeName + "," + subTypeName;
+      String typeId = type + "," + typeName + "," + subTypeName;
 
       if (i != sheet.getLastRowNum() &&
-              typeId.equals(getString(sheet.getRow(i+1).getCell(4)).replace(' ', '-') + "," + getString(sheet.getRow(i+1).getCell(7)).replace(' ', '-'))
+              typeId.equals(getString(sheet.getRow(i+1).getCell(1)) + "," + getString(sheet.getRow(i+1).getCell(4)).replace(' ', '-') + "," + getString(sheet.getRow(i+1).getCell(7)).replace(' ', '-'))
       ) {
         Map<String, String> currentMapAttribute = mapJsonFormat.get(typeId);
         List<AttributeDto> attributeDtoList = mapAttribute.get(typeId);
@@ -105,7 +106,8 @@ public class ExcelUtility {
         mapAttribute.put(typeId, attributeDtoList);
       } else {
         TypeData typeData = new TypeData();
-        typeData.setTypeId(subTypeName == "" ? typeName : typeId);
+        typeData.setTypeId(subTypeName == "" ? type + "," + typeName : typeId);
+        typeData.setType(type);
         typeData.setTypeName(typeName);
         typeData.setSubTypeName(subTypeName);
         typeData.setAttributes(objectMapper.valueToTree(mapAttribute.get(typeId)));

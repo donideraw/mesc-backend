@@ -19,6 +19,8 @@ public class TypeData {
     @Id
     private String typeId;
 
+    private String type;
+
     private String typeName;
 
     private String subTypeName;
