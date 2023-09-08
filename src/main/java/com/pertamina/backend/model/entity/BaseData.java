@@ -11,7 +11,7 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "mst_basedata")
+@Table(name = "mst_data")
 @Data
 @TypeDef(
         typeClass = JsonType.class,

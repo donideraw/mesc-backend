@@ -8,7 +8,7 @@ import org.hibernate.annotations.TypeDef;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "mst_typedata")
+@Table(name = "mst_type")
 @Data
 @TypeDef(
         typeClass = JsonType.class,
@@ -21,8 +21,10 @@ public class TypeData {
 
     private String type;
 
+    @Column(name = "sub_type_1")
     private String typeName;
 
+    @Column(name = "sub_type_2")
     private String subTypeName;
 
     @Column(columnDefinition = "jsonb")
