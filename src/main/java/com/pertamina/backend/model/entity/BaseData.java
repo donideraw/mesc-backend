@@ -3,7 +3,6 @@ package com.pertamina.backend.model.entity;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.pertamina.backend.helper.DataStatus;
 import lombok.Data;
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.TypeDef;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 
@@ -11,7 +10,7 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "mst_data")
+@Table(name = "mst_equipment_master")
 @Data
 @TypeDef(
         typeClass = JsonType.class,
@@ -20,27 +19,35 @@ import java.time.LocalDateTime;
 public class BaseData {
 
     @Id
-    private String dataId;
+    private String equipmentId;
 
-    private String issuer;
-
+    private String category;
     private String description;
+    private String weight;
+    private String uom;
+    private String size;
 
-    @Column(columnDefinition = "TEXT")
-    private String detail;
+    private String typeId;
+
+    private String location;
+    private String functionalLocation;
+    private String identificationNo;
+    private String drawingNo;
+    private String manufacturer;
+    private String model;
+    private String partNo;
+    private String serialNo;
+    private String originCountry;
+    private String constructionYear;
+    private String constructionMonth;
+    private String filePath;
+    private String plant;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private DataStatus status;
 
-    private String assignee;
-
     private String comment;
-    private String reference;
-
-    private String uploadedBy;
-    @CreationTimestamp
-    private LocalDateTime uploadedAt;
 
     private String submittedBy;
     private LocalDateTime submittedAt;
@@ -49,8 +56,6 @@ public class BaseData {
     private LocalDateTime checkedAt;
 
     @Column(columnDefinition = "jsonb")
-    private JsonNode jsonData;
-
-    private String typeId;
+    private JsonNode classification;
 
 }

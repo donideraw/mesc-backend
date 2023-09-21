@@ -19,7 +19,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -32,16 +37,18 @@ public class DataServiceImpl implements DataService {
         this.baseDataRepository = baseDataRepository;
     }
 
+    private final Path root = Paths.get("/Users/doniderawibisana/Documents/mesc/file-uploaded");
+
     @Override
     public DashboardDto getDataDashboard() {
 
         AppAuth auth = SecurityUtil.getAuth();
 
         List<BaseData> totalData = baseDataRepository.findAll();
-        List<BaseData> totalAssignedData = baseDataRepository.findAllByAssignee(auth.getUsername());
-        List<BaseData> totalCompletedData = baseDataRepository.findAllByStatus(DataStatus.SUBMITTED);
-        List<BaseData> totalRequestedData = baseDataRepository.findAllByStatusAndAssignee(DataStatus.REQUESTED, auth.getUsername());
-        List<BaseData> totalTodoData = baseDataRepository.findAllByStatusAndAssignee(DataStatus.ASSIGNED, auth.getUsername());
+        List<BaseData> totalAssignedData = baseDataRepository.findAll();
+        List<BaseData> totalCompletedData = baseDataRepository.findAll();
+        List<BaseData> totalRequestedData = baseDataRepository.findAll();
+        List<BaseData> totalTodoData = baseDataRepository.findAll();
 
         DashboardDto dto = new DashboardDto();
         dto.setTotalTask(totalData.size());
@@ -55,7 +62,7 @@ public class DataServiceImpl implements DataService {
 
     @Override
     public List<BaseData> getAllBaseDataCompleted() {
-        return baseDataRepository.findAllByStatus(DataStatus.SUBMITTED);
+        return baseDataRepository.findAllByOrderByEquipmentIdAsc();
     }
 
     @Override
@@ -64,7 +71,7 @@ public class DataServiceImpl implements DataService {
         BaseDataDtoRes res = new BaseDataDtoRes();
         Page<BaseData> baseDataPage;
 
-        Sort sort = Sort.by(Sort.Direction.ASC, "uploadedAt");
+        Sort sort = Sort.by(Sort.Direction.ASC, "equipmentId");
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
         Specification<BaseData> specification = (root, query, criteriaBuilder) ->
@@ -84,17 +91,16 @@ public class DataServiceImpl implements DataService {
         BaseDataDtoRes res = new BaseDataDtoRes();
         Page<BaseData> baseDataPage;
 
-        Sort sort = Sort.by(Sort.Direction.DESC, "uploadedAt");
+        Sort sort = Sort.by(Sort.Direction.ASC, "equipmentId");
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
         if (AppUserType.STAFF.equals(auth.getUserType())) {
             Specification<BaseData> specification = (root, query, criteriaBuilder) ->
                     criteriaBuilder.and(
-                            criteriaBuilder.equal(root.get("assignee"), auth.getUsername()),
                             criteriaBuilder.or(
-                            criteriaBuilder.like(criteriaBuilder.upper(root.get("dataId")), "%" + request.getSearch().toUpperCase() + "%"),
-                            criteriaBuilder.like(criteriaBuilder.upper(root.get("issuer")), "%" + request.getSearch().toUpperCase() + "%"),
-                            criteriaBuilder.like(criteriaBuilder.upper(root.get("description")), "%" + request.getSearch().toUpperCase() + "%")
+                            criteriaBuilder.like(criteriaBuilder.upper(root.get("equipmentId")), "%" + request.getSearch().toUpperCase() + "%"),
+                            criteriaBuilder.like(criteriaBuilder.upper(root.get("category")), "%" + request.getSearch().toUpperCase() + "%"),
+                            criteriaBuilder.like(criteriaBuilder.upper(root.get("typeId")), "%" + request.getSearch().toUpperCase() + "%")
                     )
                     );
             baseDataPage = baseDataRepository.findAll(specification, pageable);
@@ -112,9 +118,9 @@ public class DataServiceImpl implements DataService {
         } else {
             Specification<BaseData> specification = (root, query, criteriaBuilder) ->
                     criteriaBuilder.or(
-                            criteriaBuilder.like(criteriaBuilder.upper(root.get("dataId")), "%" + request.getSearch().toUpperCase() + "%"),
-                            criteriaBuilder.like(criteriaBuilder.upper(root.get("issuer")), "%" + request.getSearch().toUpperCase() + "%"),
-                            criteriaBuilder.like(criteriaBuilder.upper(root.get("description")), "%" + request.getSearch().toUpperCase() + "%")
+                            criteriaBuilder.like(criteriaBuilder.upper(root.get("equipmentId")), "%" + request.getSearch().toUpperCase() + "%"),
+                            criteriaBuilder.like(criteriaBuilder.upper(root.get("category")), "%" + request.getSearch().toUpperCase() + "%"),
+                            criteriaBuilder.like(criteriaBuilder.upper(root.get("typeId")), "%" + request.getSearch().toUpperCase() + "%")
                     );
             baseDataPage = baseDataRepository.findAll(specification, pageable);
         }
@@ -147,32 +153,68 @@ public class DataServiceImpl implements DataService {
 
     @Override
     public BaseData saveDraft(BaseDataDto dto) {
-        BaseData data = baseDataRepository.findByDataId(dto.getDataId());
+        BaseData data = baseDataRepository.findByEquipmentId(dto.getEquipmentId());
 
         if (data == null) {
-            throw new CustomException("Data not found!", HttpStatus.BAD_REQUEST);
+            data = new BaseData();
+            data.setEquipmentId(dto.getEquipmentId());
         }
 
-        data.setIssuer(dto.getIssuer());
-        data.setJsonData(dto.getJsonData());
-        data.setReference(dto.getLinkReference());
+        data.setCategory(dto.getCategory());
+        data.setDescription(dto.getDescription());
+        data.setWeight(dto.getWeight());
+        data.setUom(dto.getUom());
+        data.setSize(dto.getSize());
+        data.setTypeId(dto.getTypeId());
+        data.setLocation(dto.getLocation());
+        data.setFunctionalLocation(dto.getFunctionalLocation());
+        data.setIdentificationNo(dto.getIdentificationNo());
+        data.setDrawingNo(dto.getDrawingNo());
+        data.setManufacturer(dto.getManufacturer());
+        data.setModel(dto.getModel());
+        data.setPartNo(dto.getPartNo());
+        data.setSerialNo(dto.getSerialNo());
+        data.setOriginCountry(dto.getOriginCountry());
+        data.setConstructionYear(dto.getConstructionYear());
+        data.setConstructionMonth(dto.getConstructionMonth());
+        data.setFilePath(dto.getFilePath());
+        data.setClassification(dto.getClassification());
+        data.setStatus(DataStatus.DRAFT);
 
         return baseDataRepository.save(data);
     }
 
     @Override
     public BaseData submit(BaseDataDto dto) {
-        BaseData data = baseDataRepository.findByDataId(dto.getDataId());
+        BaseData data = baseDataRepository.findByEquipmentId(dto.getEquipmentId());
 
         if (data == null) {
-            throw new CustomException("Data not found!", HttpStatus.BAD_REQUEST);
+            data = new BaseData();
+            data.setEquipmentId(dto.getEquipmentId());
         }
 
         AppAuth auth = SecurityUtil.getAuth();
 
-        data.setIssuer(dto.getIssuer());
-        data.setJsonData(dto.getJsonData());
-        data.setReference(dto.getLinkReference());
+        data.setCategory(dto.getCategory());
+        data.setDescription(dto.getDescription());
+        data.setWeight(dto.getWeight());
+        data.setUom(dto.getUom());
+        data.setSize(dto.getSize());
+        data.setTypeId(dto.getTypeId());
+        data.setLocation(dto.getLocation());
+        data.setFunctionalLocation(dto.getFunctionalLocation());
+        data.setIdentificationNo(dto.getIdentificationNo());
+        data.setDrawingNo(dto.getDrawingNo());
+        data.setManufacturer(dto.getManufacturer());
+        data.setModel(dto.getModel());
+        data.setPartNo(dto.getPartNo());
+        data.setSerialNo(dto.getSerialNo());
+        data.setOriginCountry(dto.getOriginCountry());
+        data.setConstructionYear(dto.getConstructionYear());
+        data.setConstructionMonth(dto.getConstructionMonth());
+        data.setFilePath(dto.getFilePath());
+        data.setClassification(dto.getClassification());
+        data.setStatus(DataStatus.DRAFT);
         data.setStatus(DataStatus.SUBMITTED);
         data.setSubmittedBy(auth.getUsername());
         data.setSubmittedAt(LocalDateTime.now());
@@ -182,7 +224,7 @@ public class DataServiceImpl implements DataService {
 
     @Override
     public BaseData verify(BaseDataDto dto, DataStatus status) {
-        BaseData data = baseDataRepository.findByDataId(dto.getDataId());
+        BaseData data = baseDataRepository.findByEquipmentId(dto.getEquipmentId());
 
         if (data == null) {
             throw new CustomException("Data not found!", HttpStatus.BAD_REQUEST);
@@ -196,5 +238,28 @@ public class DataServiceImpl implements DataService {
         data.setCheckedAt(LocalDateTime.now());
 
         return baseDataRepository.save(data);
+    }
+
+    @Override
+    public String uploadReference(MultipartFile file) throws IOException {
+        checkFolder(root);
+
+        Path filePath = root.resolve(file.getOriginalFilename());
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+        return filePath.toString();
+    }
+
+    private void checkFolder(Path path) {
+        File directory = new File(path.toUri());
+        if(!directory.exists()) {
+            directory.mkdirs();
+        }
+    }
+
+    @Override
+    public byte[] getDocument(DocumentDto dto) throws IOException {
+        File file = new File(dto.getFilePath());
+        return Files.readAllBytes(file.toPath());
     }
 }

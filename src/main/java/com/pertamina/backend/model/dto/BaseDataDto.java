@@ -6,10 +6,31 @@ import lombok.Data;
 @Data
 public class BaseDataDto {
 
-    private String dataId;
-    private String issuer;
-    private String linkReference;
+    private String equipmentId;
+
+    private String category;
+    private String description;
+    private String weight;
+    private String uom;
+    private String size;
+
+    private String typeId;
+
+    private String location;
+    private String functionalLocation;
+    private String identificationNo;
+    private String drawingNo;
+    private String manufacturer;
+    private String model;
+    private String partNo;
+    private String serialNo;
+    private String originCountry;
+    private String constructionYear;
+    private String constructionMonth;
+    private String filePath;
+    private String plant;
+    private JsonNode classification;
+
     private String comment;
-    private JsonNode jsonData;
 
 }

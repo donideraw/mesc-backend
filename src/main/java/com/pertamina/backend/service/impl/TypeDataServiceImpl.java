@@ -12,6 +12,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,7 +31,8 @@ public class TypeDataServiceImpl implements TypeDataService {
 
     @Override
     public TypeDataDtoRes getAllPagedData(PageableRequest request) {
-        Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
+        Sort sort = Sort.by(Sort.Direction.ASC, "typeId");
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
         Page<TypeData> typeDataPage = repository.findAll(pageable);
 
         TypeDataDtoRes res = new TypeDataDtoRes();

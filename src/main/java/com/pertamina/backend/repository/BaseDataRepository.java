@@ -10,12 +10,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface BaseDataRepository extends JpaRepository<BaseData, String> {
-
-    List<BaseData> findAllByAssignee(String assignee);
     List<BaseData> findAllByStatus(DataStatus dataStatus);
-    List<BaseData> findAllByStatusAndAssignee(DataStatus dataStatus, String assignee);
+    List<BaseData> findAllByOrderByEquipmentIdAsc();
 
-    BaseData findByDataId(String dataId);
+
+    BaseData findByEquipmentId(String dataId);
 
     Page<BaseData> findAll(Specification<BaseData> specification, Pageable pageable);
 }
