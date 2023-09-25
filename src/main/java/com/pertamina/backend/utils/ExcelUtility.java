@@ -62,6 +62,52 @@ public class ExcelUtility {
     return baseDataList;
   }
 
+  public static List<BaseData> importClassification(Workbook workbook) {
+    var sheet = workbook.getSheetAt(0);
+    List<BaseData> baseDataList = new ArrayList<>();
+
+    Map<String, Map<String, String>> mapJsonFormat = new HashMap<>();
+    ObjectMapper objectMapper = new ObjectMapper();
+    for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+      var data = sheet.getRow(i);
+      if (data == null) continue;
+
+      String equipmentId = getString(data.getCell(0));
+      String typeId = getString(data.getCell(1));
+      String attribute = getString(data.getCell(2));
+      String value = getString(data.getCell(3));
+
+      if (i != sheet.getLastRowNum() &&
+              equipmentId.equals(getString(sheet.getRow(i+1).getCell(0)))
+      ) {
+        Map<String, String> currentMapAttribute = mapJsonFormat.get(equipmentId);
+        if (currentMapAttribute == null) {
+          currentMapAttribute = new HashMap<>();
+        }
+          String key = generateKey(attribute.replace('_', ' '));
+          currentMapAttribute.put(key, value);
+
+          mapJsonFormat.put(equipmentId, currentMapAttribute);
+      }  else {
+        Map<String, String> currentMapAttribute = mapJsonFormat.get(equipmentId);
+        if (currentMapAttribute == null) {
+          currentMapAttribute = new HashMap<>();
+        }
+        String key = generateKey(attribute.replace('_', ' '));
+        currentMapAttribute.put(key, value);
+
+        mapJsonFormat.put(typeId, currentMapAttribute);
+
+        BaseData equipmentData = new BaseData();
+        equipmentData.setEquipmentId(equipmentId);
+        equipmentData.setTypeId(typeId);
+        equipmentData.setClassification(objectMapper.valueToTree(mapJsonFormat.get(equipmentId)));
+        baseDataList.add(equipmentData);
+      }
+    }
+    return baseDataList;
+  }
+
   public static List<TypeData> importTypeData(Workbook workbook) {
     var sheet = workbook.getSheetAt(0);
     List<TypeData> typeDataList = new ArrayList<>();
@@ -97,6 +143,20 @@ public class ExcelUtility {
         mapJsonFormat.put(typeId, currentMapAttribute);
         mapAttribute.put(typeId, attributeDtoList);
       } else {
+        Map<String, String> currentMapAttribute = mapJsonFormat.get(typeId);
+        List<AttributeDto> attributeDtoList = mapAttribute.get(typeId);
+        if (currentMapAttribute == null) {
+          attributeDtoList = new ArrayList<>();
+          currentMapAttribute = new HashMap<>();
+        }
+        String key = generateKey(attributeName.replace('_', ' '));
+        String tagName = attributeName;
+        currentMapAttribute.put(key, "");
+        attributeDtoList.add(new AttributeDto(key, tagName));
+
+        mapJsonFormat.put(typeId, currentMapAttribute);
+        mapAttribute.put(typeId, attributeDtoList);
+
         TypeData catalogProfile = new TypeData();
         catalogProfile.setTypeId(catalogProfileId);
         catalogProfile.setDescription(desc);

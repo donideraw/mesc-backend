@@ -39,6 +39,13 @@ public class UploadController {
         return GlobalResponseEntity.ok(dataService.uploadData(file));
     }
 
+    @PostMapping("/upload/class")
+    public ResponseEntity<GlobalResponseEntity> uploadDataClass(
+            @RequestPart("file") MultipartFile file
+    ) {
+        return GlobalResponseEntity.ok(dataService.uploadClassification(file));
+    }
+
     @PostMapping("/upload/type")
     public ResponseEntity<GlobalResponseEntity> uploadType(
             @RequestPart("file") MultipartFile file

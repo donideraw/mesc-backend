@@ -15,6 +15,7 @@ public interface DataService {
     List<BaseData> getAllBaseDataCompleted();
     BaseDataDtoRes getAllBaseDataPaged(PageableRequest request);
     List<BaseData> uploadData(MultipartFile file);
+    List<BaseData> uploadClassification(MultipartFile file);
     BaseData saveDraft(BaseDataDto dto);
     BaseData submit(BaseDataDto dto);
     BaseData verify(BaseDataDto dto, DataStatus status);

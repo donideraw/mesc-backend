@@ -9,5 +9,6 @@ public class PageableRequest {
     private int size;
     private String sort;
     private String search;
+    private String category;
 
 }

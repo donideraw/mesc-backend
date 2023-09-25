@@ -45,10 +45,10 @@ public class DataServiceImpl implements DataService {
         AppAuth auth = SecurityUtil.getAuth();
 
         List<BaseData> totalData = baseDataRepository.findAll();
-        List<BaseData> totalAssignedData = baseDataRepository.findAll();
-        List<BaseData> totalCompletedData = baseDataRepository.findAll();
-        List<BaseData> totalRequestedData = baseDataRepository.findAll();
-        List<BaseData> totalTodoData = baseDataRepository.findAll();
+        List<BaseData> totalAssignedData = baseDataRepository.findAllByStatus(DataStatus.DRAFT);
+        List<BaseData> totalCompletedData = baseDataRepository.findAllByStatus(DataStatus.SUBMITTED);
+        List<BaseData> totalRequestedData = baseDataRepository.findAllByStatus(DataStatus.SUBMITTED);
+        List<BaseData> totalTodoData = baseDataRepository.findAllByStatus(DataStatus.DRAFT);
 
         DashboardDto dto = new DashboardDto();
         dto.setTotalTask(totalData.size());
@@ -94,17 +94,7 @@ public class DataServiceImpl implements DataService {
         Sort sort = Sort.by(Sort.Direction.ASC, "equipmentId");
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
-        if (AppUserType.STAFF.equals(auth.getUserType())) {
-            Specification<BaseData> specification = (root, query, criteriaBuilder) ->
-                    criteriaBuilder.and(
-                            criteriaBuilder.or(
-                            criteriaBuilder.like(criteriaBuilder.upper(root.get("equipmentId")), "%" + request.getSearch().toUpperCase() + "%"),
-                            criteriaBuilder.like(criteriaBuilder.upper(root.get("category")), "%" + request.getSearch().toUpperCase() + "%"),
-                            criteriaBuilder.like(criteriaBuilder.upper(root.get("typeId")), "%" + request.getSearch().toUpperCase() + "%")
-                    )
-                    );
-            baseDataPage = baseDataRepository.findAll(specification, pageable);
-        } else if (AppUserType.VERIFICATOR.equals(auth.getUserType())) {
+        if (AppUserType.VERIFICATOR.equals(auth.getUserType())) {
             Specification<BaseData> specification = (root, query, criteriaBuilder) ->
                     criteriaBuilder.and(
                             criteriaBuilder.equal(root.get("status"), DataStatus.SUBMITTED),
@@ -116,12 +106,22 @@ public class DataServiceImpl implements DataService {
                     );
             baseDataPage = baseDataRepository.findAll(specification, pageable);
         } else {
-            Specification<BaseData> specification = (root, query, criteriaBuilder) ->
-                    criteriaBuilder.or(
-                            criteriaBuilder.like(criteriaBuilder.upper(root.get("equipmentId")), "%" + request.getSearch().toUpperCase() + "%"),
-                            criteriaBuilder.like(criteriaBuilder.upper(root.get("category")), "%" + request.getSearch().toUpperCase() + "%"),
-                            criteriaBuilder.like(criteriaBuilder.upper(root.get("typeId")), "%" + request.getSearch().toUpperCase() + "%")
-                    );
+            Specification<BaseData> specification = !"".equals(request.getCategory()) ?
+                    (root, query, criteriaBuilder) ->
+                    criteriaBuilder.and(
+                            criteriaBuilder.or(
+                                    criteriaBuilder.like(criteriaBuilder.upper(root.get("equipmentId")), "%" + request.getSearch().toUpperCase() + "%"),
+                                    criteriaBuilder.like(criteriaBuilder.upper(root.get("typeId")), "%" + request.getSearch().toUpperCase() + "%")
+                            ),
+                            criteriaBuilder.equal(criteriaBuilder.upper(root.get("category")), request.getCategory().toUpperCase())
+                    )
+                    :
+                    (root, query, criteriaBuilder) ->
+                            criteriaBuilder.or(
+                                    criteriaBuilder.like(criteriaBuilder.upper(root.get("equipmentId")), "%" + request.getSearch().toUpperCase() + "%"),
+                                    criteriaBuilder.like(criteriaBuilder.upper(root.get("typeId")), "%" + request.getSearch().toUpperCase() + "%")
+                            )
+                    ;
             baseDataPage = baseDataRepository.findAll(specification, pageable);
         }
 
@@ -148,7 +148,44 @@ public class DataServiceImpl implements DataService {
             throw new CustomException("Fail to store data", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        return baseDataRepository.saveAll(baseDataList);
+        baseDataList.forEach(val -> {
+            BaseData data = baseDataRepository.findByEquipmentId(val.getEquipmentId());
+            if (data != null) {
+                val.setTypeId(data.getTypeId());
+                val.setClassification(data.getClassification());
+            }
+            val = baseDataRepository.save(val);
+        });
+
+        return baseDataList;
+    }
+
+    @Override
+    public List<BaseData> uploadClassification(MultipartFile file) {
+        if (!ExcelUtility.hasExcelFormat(file)) throw new CustomException(
+                "File is not Excel!",
+                HttpStatus.BAD_REQUEST
+        );
+
+        List<BaseData> baseDataList;
+        try {
+            var workbook = new XSSFWorkbook(file.getInputStream());
+            baseDataList = ExcelUtility.importClassification(workbook);
+            workbook.close();
+        } catch (IOException e) {
+            throw new CustomException("Fail to store data", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        baseDataList.forEach(val -> {
+            BaseData data = baseDataRepository.findByEquipmentId(val.getEquipmentId());
+            if (data != null) {
+                data.setTypeId(val.getTypeId());
+                data.setClassification(val.getClassification());
+            }
+            val = baseDataRepository.save(data);
+        });
+
+        return baseDataList;
     }
 
     @Override
