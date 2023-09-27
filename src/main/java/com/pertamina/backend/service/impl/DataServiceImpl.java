@@ -37,8 +37,8 @@ public class DataServiceImpl implements DataService {
         this.baseDataRepository = baseDataRepository;
     }
 
-    private final Path root = Paths.get("/Users/doniderawibisana/Documents/mesc/file-uploaded");
-//    private final Path root = Paths.get("/opt/source/img");
+//    private final Path root = Paths.get("/Users/doniderawibisana/Documents/mesc/file-uploaded");
+    private final Path root = Paths.get("/opt/source/img");
 
     @Override
     public DashboardDto getDataDashboard() {
