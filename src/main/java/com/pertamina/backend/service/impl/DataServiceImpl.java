@@ -38,6 +38,7 @@ public class DataServiceImpl implements DataService {
     }
 
     private final Path root = Paths.get("/Users/doniderawibisana/Documents/mesc/file-uploaded");
+//    private final Path root = Paths.get("/opt/source/img");
 
     @Override
     public DashboardDto getDataDashboard() {
@@ -215,6 +216,7 @@ public class DataServiceImpl implements DataService {
         data.setConstructionYear(dto.getConstructionYear());
         data.setConstructionMonth(dto.getConstructionMonth());
         data.setFilePath(dto.getFilePath());
+        data.setFileURL(dto.getFileURL());
         data.setClassification(dto.getClassification());
         data.setStatus(DataStatus.DRAFT);
 
@@ -250,6 +252,7 @@ public class DataServiceImpl implements DataService {
         data.setConstructionYear(dto.getConstructionYear());
         data.setConstructionMonth(dto.getConstructionMonth());
         data.setFilePath(dto.getFilePath());
+        data.setFileURL(dto.getFileURL());
         data.setClassification(dto.getClassification());
         data.setStatus(DataStatus.DRAFT);
         data.setStatus(DataStatus.SUBMITTED);

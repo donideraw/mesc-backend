@@ -41,6 +41,7 @@ public class BaseData {
     private String constructionYear;
     private String constructionMonth;
     private String filePath;
+    private String fileURL;
     private String plant;
 
     @Column(nullable = false)

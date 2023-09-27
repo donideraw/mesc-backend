@@ -28,6 +28,7 @@ public class BaseDataDto {
     private String constructionYear;
     private String constructionMonth;
     private String filePath;
+    private String fileURL;
     private String plant;
     private JsonNode classification;
 
