@@ -16,8 +16,8 @@ public class BillMaterialController {
         this.service = service;
     }
 
-    @GetMapping("/{equipmentId}")
-    public ResponseEntity<GlobalResponseEntity> getAll(@PathVariable("equipmentId") String equipmentId) {
+    @GetMapping()
+    public ResponseEntity<GlobalResponseEntity> getAll(@RequestParam String equipmentId) {
         return GlobalResponseEntity.ok(service.getAll(equipmentId));
     }
 
