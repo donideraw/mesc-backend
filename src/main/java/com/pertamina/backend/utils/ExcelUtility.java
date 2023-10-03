@@ -207,7 +207,7 @@ public class ExcelUtility {
 
       BillMaterial bom = new BillMaterial();
       bom.setEquipmentId(getString(data.getCell(2)));
-      bom.setItemNumber(getString(data.getCell(4)));
+      bom.setItemNumber(removeDecimal(getString(data.getCell(4))));
       bom.setSortString(getString(data.getCell(5)));
       bom.setTextLine1(getString(data.getCell(6)));
       bom.setTextLine2(getString(data.getCell(7)));
@@ -219,6 +219,14 @@ public class ExcelUtility {
     }
 
     return bomList;
+  }
+
+  private static String removeDecimal(String itemNumber) {
+    if (itemNumber != null && !"".equals(itemNumber)) {
+      String[] splitted = itemNumber.split("\\.");
+      return splitted[0];
+    }
+    return itemNumber;
   }
 
   private static String generateKey(String input) {
