@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -37,7 +38,8 @@ public class DataServiceImpl implements DataService {
         this.baseDataRepository = baseDataRepository;
     }
 
-//    private final Path root = Paths.get("/Users/doniderawibisana/Documents/mesc/file-uploaded");
+    private List<BaseData> data = new ArrayList<>();
+
     private final Path root = Paths.get("/opt/source/img");
 
     @Override
@@ -63,7 +65,12 @@ public class DataServiceImpl implements DataService {
 
     @Override
     public List<BaseData> getAllBaseDataCompleted() {
-        return baseDataRepository.findAllByOrderByEquipmentIdAsc();
+        if (this.data.isEmpty()) {
+            this.data = baseDataRepository.findAllByOrderByEquipmentIdAsc();
+        }
+
+        return this.data;
+
     }
 
     @Override
@@ -88,43 +95,30 @@ public class DataServiceImpl implements DataService {
 
     @Override
     public BaseDataDtoRes getAllBaseDataPaged(PageableRequest request) {
-        AppAuth auth = SecurityUtil.getAuth();
+
         BaseDataDtoRes res = new BaseDataDtoRes();
         Page<BaseData> baseDataPage;
 
         Sort sort = Sort.by(Sort.Direction.ASC, "equipmentId");
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
-        if (AppUserType.VERIFICATOR.equals(auth.getUserType())) {
-            Specification<BaseData> specification = (root, query, criteriaBuilder) ->
-                    criteriaBuilder.and(
-                            criteriaBuilder.equal(root.get("status"), DataStatus.SUBMITTED),
-                            criteriaBuilder.or(
-                                    criteriaBuilder.like(criteriaBuilder.upper(root.get("dataId")), "%" + request.getSearch().toUpperCase() + "%"),
-                                    criteriaBuilder.like(criteriaBuilder.upper(root.get("issuer")), "%" + request.getSearch().toUpperCase() + "%"),
-                                    criteriaBuilder.like(criteriaBuilder.upper(root.get("description")), "%" + request.getSearch().toUpperCase() + "%")
-                            )
-                    );
-            baseDataPage = baseDataRepository.findAll(specification, pageable);
-        } else {
-            Specification<BaseData> specification = !"".equals(request.getCategory()) ?
-                    (root, query, criteriaBuilder) ->
-                    criteriaBuilder.and(
-                            criteriaBuilder.or(
-                                    criteriaBuilder.like(criteriaBuilder.upper(root.get("equipmentId")), "%" + request.getSearch().toUpperCase() + "%"),
-                                    criteriaBuilder.like(criteriaBuilder.upper(root.get("typeId")), "%" + request.getSearch().toUpperCase() + "%")
-                            ),
-                            criteriaBuilder.equal(criteriaBuilder.upper(root.get("category")), request.getCategory().toUpperCase())
-                    )
-                    :
-                    (root, query, criteriaBuilder) ->
-                            criteriaBuilder.or(
-                                    criteriaBuilder.like(criteriaBuilder.upper(root.get("equipmentId")), "%" + request.getSearch().toUpperCase() + "%"),
-                                    criteriaBuilder.like(criteriaBuilder.upper(root.get("typeId")), "%" + request.getSearch().toUpperCase() + "%")
-                            )
-                    ;
-            baseDataPage = baseDataRepository.findAll(specification, pageable);
-        }
+        Specification<BaseData> specification = !"".equals(request.getCategory()) ?
+                (root, query, criteriaBuilder) ->
+                        criteriaBuilder.and(
+                                criteriaBuilder.or(
+                                        criteriaBuilder.like(criteriaBuilder.upper(root.get("equipmentId")), "%" + request.getSearch().toUpperCase() + "%"),
+                                        criteriaBuilder.like(criteriaBuilder.upper(root.get("typeId")), "%" + request.getSearch().toUpperCase() + "%")
+                                ),
+                                criteriaBuilder.equal(criteriaBuilder.upper(root.get("category")), request.getCategory().toUpperCase())
+                        )
+                :
+                (root, query, criteriaBuilder) ->
+                        criteriaBuilder.or(
+                                criteriaBuilder.like(criteriaBuilder.upper(root.get("equipmentId")), "%" + request.getSearch().toUpperCase() + "%"),
+                                criteriaBuilder.like(criteriaBuilder.upper(root.get("typeId")), "%" + request.getSearch().toUpperCase() + "%")
+                        )
+                ;
+        baseDataPage = baseDataRepository.findAll(specification, pageable);
 
         res.setData(baseDataPage.getContent());
         res.setTotalPages(baseDataPage.getTotalPages());
@@ -157,6 +151,8 @@ public class DataServiceImpl implements DataService {
             }
             val = baseDataRepository.save(val);
         });
+
+        this.data.clear();
 
         return baseDataList;
     }
@@ -196,6 +192,9 @@ public class DataServiceImpl implements DataService {
         if (data == null) {
             data = new BaseData();
             data.setEquipmentId(dto.getEquipmentId());
+
+            this.data.clear();
+
         }
 
         data.setCategory(dto.getCategory());
@@ -230,6 +229,9 @@ public class DataServiceImpl implements DataService {
         if (data == null) {
             data = new BaseData();
             data.setEquipmentId(dto.getEquipmentId());
+
+            this.data.clear();
+
         }
 
         AppAuth auth = SecurityUtil.getAuth();
